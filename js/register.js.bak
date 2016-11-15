@@ -1,0 +1,103 @@
+$(function() {
+
+	//step1第一步表单验证
+	var stepCall = false;
+	var stepCode = false;
+	var stepPhone = false;
+	var stepCheckbox = false;
+	var regCall = /\d{11}/;
+	var regCode = /\w{4}/;
+	$("#stepCall").focus(function() {
+		if(!regCall.test($(this).val())) {
+			$(".step1_1>td:last-child").html("请输入正确手机号码").css("padding-left", "10px");
+		}
+	}).blur(function() {
+		if(regCall.test($(this).val())) {
+			stepCall = true;
+			$(".step1_1>td:last-child").html('恭喜您，该手机可以注册').css("padding-left", "10px");;
+		} else {
+			$(".step1_1>td:last-child").html("手机号码错误，请重新输入").css("padding-left", "10px");
+		}
+	});
+	$("#stepCode").focus(function() {
+		if(regCode.test($(this).val())) {
+			stepCode = true;
+			$(".alertinfo").empty();
+		}else{
+			$(".alertinfo").html("请先输入验证码").css("padding-left", "10px");
+		}
+		
+	}).blur(function() {
+		if(regCode.test($(this).val())) {
+			stepCode = true;
+			$(".alertinfo").empty();
+		}else{
+			$(".alertinfo").html("验证码错误").css("padding-left", "10px");
+		}
+	});
+	var time; //总时间
+	var count = 60;
+	var timeless; //倒计时剩余时间
+	$(".phone_get_code").click(function() {
+		if(stepCall && stepCode) {
+			$("#stepPhone").removeAttr("disabled");
+			timeless = count;
+			$(this).empty().html("请在" + timeless + "秒内输入验证码").css("width", "auto");
+			time = setInterval(timefun, 1000);
+		} else {
+			$(".step1_1>td:last-child").html("请先输入手机号码").css("padding-left", "10px");
+			$(".alertinfo").html("请先输入验证码").css("padding-left", "10px");
+
+		}
+	});
+
+	function timefun() {
+		if(timeless == 0) {
+			clearInterval(time);
+			$(".phone_get_code").empty().html("获取动态码");
+		} else {
+			timeless--;
+			$(".phone_get_code").html("请在" + timeless + "秒内输入验证码").css("width", "auto");
+		}
+	}
+	$("#stepCheckbox").click(function() {
+		if($(this).css("checked") == "checcked") {
+			stepCheckbox = true;
+		}
+	});
+	var stepCall = $("#stepCall").val();
+	var stepCode = $("#stepCode").val();
+	var stepPhone = $("#stepPhone").val();
+	$.ajax({
+		type:"post",
+		dataType:"text",
+		url:'step1.php',
+		data:"&stepCall="+stepCall+"&stepCode="+stepCode+"&stepPhone="+stepPhone,
+		error:function(XMLHttpRequest, textStatus, errorThrown){
+			  
+		},
+		success:function(data,status) {
+			var ndata=data.split(":");
+			console.log(status);
+			if(ndata[2]== stepPhone){
+				stepPhone=true;
+			}
+
+            
+		}
+	});
+	$("#onsubmit").click(function(e) {
+		if(stepCall && stepCode && stepPhone && stepCheckbox) {
+			if(e.preventDefault) {
+				e.preventDefault();
+			} else {
+				e.returnValue = flase;
+			}
+
+			$("#form1").submit();
+			$("register_step1").css("display", "none");
+			$("register_step2").css("display", "block");
+		}
+	});
+
+});
